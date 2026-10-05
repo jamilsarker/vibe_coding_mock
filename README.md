@@ -2,20 +2,39 @@
 
 **AI DevFest Mock Test Solution**
 
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge&logo=github)](https://YOUR-USERNAME.github.io/devfest-REGISTRATION-NUMBER/)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+[![Made with](https://img.shields.io/badge/Made%20with-JavaScript-yellow?style=for-the-badge&logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+
 ---
 
 ## 🚀 Live Demo
 
-Open `index.html` directly in your browser (Chrome recommended).
+### 🌐 **[Click Here to Open Live Demo](https://YOUR-USERNAME.github.io/devfest-REGISTRATION-NUMBER/)**
+
+> **📝 Note:** After deploying to GitHub Pages/Vercel/Netlify, replace the URL above with your actual live link.
+
+### 💻 Local Testing:
+If you want to run locally, simply open `index.html` in your browser (Chrome recommended).
+
+**Quick Start:**
+1. Open the live demo link above (or local file)
+2. Click "Import Building Data" button
+3. Select the `building.json` file
+4. Select R1 as starting point
+5. Try blocking C2 to see route recalculation! ✨
 
 ---
 
 ## 👤 Developer Information
 
-- **Name**: [Your Full Name]
+- **Name**: [Your Full Name Here]
 - **Registration Number**: [Your Registration Number]
-- **Repository**: [Your GitHub Repository URL]
-- **Live Website**: [Your Deployed URL]
+- **GitHub Repository**: [https://github.com/YOUR-USERNAME/devfest-REGISTRATION-NUMBER](https://github.com/YOUR-USERNAME/devfest-REGISTRATION-NUMBER)
+- **Live Website**: [https://YOUR-USERNAME.github.io/devfest-REGISTRATION-NUMBER/](https://YOUR-USERNAME.github.io/devfest-REGISTRATION-NUMBER/)
+- **Final Commit ID**: [Will be added after final commit]
+
+> **Instructions:** Replace the placeholders above with your actual information before submission.
 
 ---
 
