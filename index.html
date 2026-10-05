@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Escape - Interactive Evacuation Route Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--bg-primary);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px var(--shadow);
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px 30px 30px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            margin-top: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .lang-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            z-index: 100;
+            font-size: 0.95em;
+        }
+
+        .lang-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .sidebar {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .section {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--accent-blue);
+            font-size: 1.1em;
+        }
+
+        button {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+            font-size: 1em;
+        }
+
+        button:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-primary);
+            border: 2px dashed var(--accent-blue);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .canvas-container {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            overflow: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        canvas {
+            border: 2px solid var(--bg-tertiary);
+            border-radius: 10px;
+            background: #1a1f2e;
+            cursor: crosshair;
+        }
+
+        .status-box {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .status-box.error {
+            border-left-color: var(--accent-red);
+        }
+
+        .status-box.warning {
+            border-left-color: var(--accent-yellow);
+        }
+
+        .route-info {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .controls-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .node-list, .edge-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: var(--bg-primary);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .list-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: var(--bg-secondary);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-item:hover {
+            background: var(--bg-tertiary);
+            transform: translateX(5px);
+        }
+
+        .list-item.blocked {
+            background: rgba(239, 68, 68, 0.2);
+            border-left: 3px solid var(--accent-red);
+        }
+
+        .list-item.selected {
+            background: rgba(59, 130, 246, 0.3);
+            border-left: 3px solid var(--accent-blue);
+        }
+
+        .toggle-btn {
+            padding: 5px 10px;
+            font-size: 0.85em;
+            width: auto;
+        }
+
+        .legend {
+            display: grid;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+        }
+
+        .building-name {
+            font-size: 1.3em;
+            color: var(--accent-green);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-blue);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <button class="lang-toggle" onclick="toggleLanguage()">🌐 <span id="langText">বাংলা</span></button>
+            <h1 id="title">Smart Escape</h1>
+            <p class="subtitle" id="subtitle">Interactive Evacuation Route Simulator</p>
+        </header>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="section">
+                    <div class="section-title" id="importTitle">Import Building Data</div>
+                    <input type="file" id="fileInput" accept=".json">
+                    <button onclick="resetToInitial()" id="resetBtn" style="margin-top: 10px; background: var(--accent-yellow)">Reset</button>
+                </div>
+
+                <div class="section" id="buildingSection" style="display: none;">
+                    <div class="building-name" id="buildingName"></div>
+                    <div class="legend">
+                        <div class="section-title" id="legendTitle">Legend</div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #3b82f6"></div>
+                            <span id="legendRoom">Room/Junction</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #10b981"></div>
+                            <span id="legendExit">Exit</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ef4444"></div>
+                            <span id="legendBlocked">Blocked</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #f59e0b"></div>
+                            <span id="legendRoute">Route</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section" id="startSection" style="display: none;">
+                    <div class="section-title" id="selectStartTitle">Select Starting Point</div>
+                    <div class="node-list" id="startNodeList"></div>
+                </div>
+
+                <div class="section" id="hazardSection" style="display: none;">
+                    <div class="section-title" id="hazardTitle">Manage Hazards</div>
+                    <div class="controls-grid">
+                        <div>
+                            <div style="font-size: 0.9em; margin-bottom: 5px; color: var(--text-secondary);" id="nodesLabel">Nodes (Rooms/Junctions):</div>
+                            <div class="node-list" id="hazardNodeList"></div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.9em; margin-bottom: 5px; color: var(--text-secondary);" id="corridorsLabel">Corridors:</div>
+                            <div class="edge-list" id="hazardEdgeList"></div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.9em; margin-bottom: 5px; color: var(--text-secondary);" id="exitsLabel">Exits:</div>
+                            <div class="edge-list" id="hazardExitList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <canvas id="mapCanvas"></canvas>
+                <div class="status-box" id="statusBox" style="display: none;">
+                    <div class="route-info" id="routeInfo"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Language data
+        const translations = {
+            en: {
+                title: "Smart Escape",
+                subtitle: "Interactive Evacuation Route Simulator",
+                langText: "বাংলা",
+                importTitle: "Import Building Data",
+                resetBtn: "Reset",
+                legendTitle: "Legend",
+                legendRoom: "Room/Junction",
+                legendExit: "Exit",
+                legendBlocked: "Blocked",
+                legendRoute: "Route",
+                selectStartTitle: "Select Starting Point",
+                hazardTitle: "Manage Hazards",
+                nodesLabel: "Nodes (Rooms/Junctions):",
+                corridorsLabel: "Corridors:",
+                exitsLabel: "Exits:",
+                noRouteAvailable: "No route available",
+                startingLocationBlocked: "Starting location blocked",
+                routeFrom: "Route from",
+                to: "to",
+                cost: "Cost",
+                path: "Path",
+                block: "Block",
+                unblock: "Unblock",
+                close: "Close",
+                open: "Open",
+                selected: "Selected"
+            },
+            bn: {
+                title: "স্মার্ট এস্কেপ",
+                subtitle: "ইন্টারেক্টিভ ইভ্যাকুয়েশন রুট সিমুলেটর",
+                langText: "English",
+                importTitle: "বিল্ডিং ডেটা আমদানি করুন",
+                resetBtn: "রিসেট",
+                legendTitle: "কিংবদন্তি",
+                legendRoom: "রুম/জংশন",
+                legendExit: "প্রস্থান",
+                legendBlocked: "অবরুদ্ধ",
+                legendRoute: "পথ",
+                selectStartTitle: "শুরুর পয়েন্ট নির্বাচন করুন",
+                hazardTitle: "ঝুঁকি ব্যবস্থাপনা",
+                nodesLabel: "নোড (রুম/জংশন):",
+                corridorsLabel: "করিডোর:",
+                exitsLabel: "প্রস্থান:",
+                noRouteAvailable: "কোন পথ উপলব্ধ নেই",
+                startingLocationBlocked: "শুরুর অবস্থান অবরুদ্ধ",
+                routeFrom: "পথ থেকে",
+                to: "পর্যন্ত",
+                cost: "খরচ",
+                path: "পথ",
+                block: "অবরুদ্ধ করুন",
+                unblock: "আনব্লক করুন",
+                close: "বন্ধ করুন",
+                open: "খুলুন",
+                selected: "নির্বাচিত"
+            }
+        };
+
+        let currentLang = 'en';
+        let buildingData = null;
+        let blockedNodes = new Set();
+        let blockedEdges = new Set();
+        let closedExits = new Set();
+        let selectedStart = null;
+        let currentRoute = null;
+        let canvas, ctx;
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'bn' : 'en';
+            updateLanguage();
+        }
+
+        function updateLanguage() {
+            const t = translations[currentLang];
+            document.getElementById('title').textContent = t.title;
+            document.getElementById('subtitle').textContent = t.subtitle;
+            document.getElementById('langText').textContent = t.langText;
+            document.getElementById('importTitle').textContent = t.importTitle;
+            document.getElementById('resetBtn').textContent = t.resetBtn;
+            document.getElementById('legendTitle').textContent = t.legendTitle;
+            document.getElementById('legendRoom').textContent = t.legendRoom;
+            document.getElementById('legendExit').textContent = t.legendExit;
+            document.getElementById('legendBlocked').textContent = t.legendBlocked;
+            document.getElementById('legendRoute').textContent = t.legendRoute;
+            document.getElementById('selectStartTitle').textContent = t.selectStartTitle;
+            document.getElementById('hazardTitle').textContent = t.hazardTitle;
+            document.getElementById('nodesLabel').textContent = t.nodesLabel;
+            document.getElementById('corridorsLabel').textContent = t.corridorsLabel;
+            document.getElementById('exitsLabel').textContent = t.exitsLabel;
+
+            if (buildingData) {
+                renderNodeLists();
+                if (selectedStart) {
+                    calculateAndDisplayRoute();
+                }
+            }
+        }
+
+        window.onload = function() {
+            canvas = document.getElementById('mapCanvas');
+            ctx = canvas.getContext('2d');
+
+            document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+            canvas.addEventListener('click', handleCanvasClick);
+        };
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (validateBuildingData(data)) {
+                        buildingData = data;
+                        initializeFromData();
+                        document.getElementById('statusBox').style.display = 'none';
+                    }
+                } catch (error) {
+                    alert('Error: Invalid JSON file - ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function validateBuildingData(data) {
+            if (!data.building || !data.nodes || !data.edges || !data.initial_state) {
+                throw new Error('Missing required fields');
+            }
+            if (!Array.isArray(data.nodes) || data.nodes.length < 2) {
+                throw new Error('Must have at least 2 nodes');
+            }
+            if (!Array.isArray(data.edges) || data.edges.length < 1) {
+                throw new Error('Must have at least 1 edge');
+            }
+
+            const hasExit = data.nodes.some(n => n.type === 'exit');
+            const hasRoomOrJunction = data.nodes.some(n => n.type === 'room' || n.type === 'junction');
+            if (!hasExit || !hasRoomOrJunction) {
+                throw new Error('Must have at least one exit and one room/junction');
+            }
+
+            // Validate IDs are unique
+            const nodeIds = new Set();
+            const edgeIds = new Set();
+            data.nodes.forEach(n => {
+                if (!n.id || !n.label || !n.type || n.x === undefined || n.y === undefined) {
+                    throw new Error('Invalid node structure');
+                }
+                if (nodeIds.has(n.id)) throw new Error('Duplicate node ID: ' + n.id);
+                nodeIds.add(n.id);
+            });
+
+            data.edges.forEach(e => {
+                if (!e.id || !e.from || !e.to || !e.cost || e.cost <= 0) {
+                    throw new Error('Invalid edge structure');
+                }
+                if (edgeIds.has(e.id)) throw new Error('Duplicate edge ID: ' + e.id);
+                if (!nodeIds.has(e.from) || !nodeIds.has(e.to)) {
+                    throw new Error('Edge references non-existent node');
+                }
+                if (e.from === e.to) throw new Error('Self-loop detected');
+                edgeIds.add(e.id);
+            });
+
+            return true;
+        }
+
+        function initializeFromData() {
+            // Reset state
+            blockedNodes = new Set(buildingData.initial_state.blocked_nodes || []);
+            blockedEdges = new Set(buildingData.initial_state.blocked_edges || []);
+            closedExits = new Set(buildingData.initial_state.closed_exits || []);
+            selectedStart = null;
+            currentRoute = null;
+
+            // Show UI sections
+            document.getElementById('buildingSection').style.display = 'block';
+            document.getElementById('startSection').style.display = 'block';
+            document.getElementById('hazardSection').style.display = 'block';
+            document.getElementById('buildingName').textContent = buildingData.building;
+
+            // Setup canvas
+            const bounds = calculateBounds();
+            const padding = 80;
+            canvas.width = bounds.maxX - bounds.minX + padding * 2;
+            canvas.height = bounds.maxY - bounds.minY + padding * 2;
+
+            renderNodeLists();
+            drawMap();
+        }
+
+        function calculateBounds() {
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            buildingData.nodes.forEach(node => {
+                minX = Math.min(minX, node.x);
+                minY = Math.min(minY, node.y);
+                maxX = Math.max(maxX, node.x);
+                maxY = Math.max(maxY, node.y);
+            });
+            return { minX, minY, maxX, maxY };
+        }
+
+        function transformCoords(x, y) {
+            const bounds = calculateBounds();
+            const padding = 80;
+            return {
+                x: x - bounds.minX + padding,
+                y: y - bounds.minY + padding
+            };
+        }
+
+        function drawMap() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw edges
+            buildingData.edges.forEach(edge => {
+                const fromNode = buildingData.nodes.find(n => n.id === edge.from);
+                const toNode = buildingData.nodes.find(n => n.id === edge.to);
+                if (!fromNode || !toNode) return;
+
+                const from = transformCoords(fromNode.x, fromNode.y);
+                const to = transformCoords(toNode.x, toNode.y);
+
+                const isBlocked = blockedEdges.has(edge.id) ||
+                                  blockedNodes.has(edge.from) ||
+                                  blockedNodes.has(edge.to);
+
+                const isInRoute = currentRoute && currentRoute.edges && currentRoute.edges.includes(edge.id);
+
+                ctx.beginPath();
+                ctx.moveTo(from.x, from.y);
+                ctx.lineTo(to.x, to.y);
+                ctx.lineWidth = isInRoute ? 6 : 3;
+                ctx.strokeStyle = isBlocked ? '#ef4444' : (isInRoute ? '#f59e0b' : '#64748b');
+                ctx.stroke();
+
+                // Draw cost label
+                const midX = (from.x + to.x) / 2;
+                const midY = (from.y + to.y) / 2;
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText(edge.cost, midX, midY);
+            });
+
+            // Draw nodes
+            buildingData.nodes.forEach(node => {
+                const pos = transformCoords(node.x, node.y);
+                const isBlocked = blockedNodes.has(node.id) || (node.type === 'exit' && closedExits.has(node.id));
+                const isSelected = selectedStart === node.id;
+                const isInRoute = currentRoute && currentRoute.path && currentRoute.path.includes(node.id);
+
+                // Node circle
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, 25, 0, Math.PI * 2);
+                
+                if (isBlocked) {
+                    ctx.fillStyle = '#ef4444';
+                } else if (isSelected) {
+                    ctx.fillStyle = '#f59e0b';
+                } else if (isInRoute) {
+                    ctx.fillStyle = '#f59e0b';
+                } else if (node.type === 'exit') {
+                    ctx.fillStyle = '#10b981';
+                } else {
+                    ctx.fillStyle = '#3b82f6';
+                }
+                
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = isSelected ? 4 : 2;
+                ctx.stroke();
+
+                // Node label
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node.label, pos.x, pos.y);
+
+                // Node ID below
+                ctx.font = '10px Arial';
+                ctx.fillText(node.id, pos.x, pos.y + 40);
+            });
+        }
+
+        function renderNodeLists() {
+            const t = translations[currentLang];
+
+            // Start nodes list
+            const startList = document.getElementById('startNodeList');
+            startList.innerHTML = '';
+            buildingData.nodes
+                .filter(n => n.type === 'room' || n.type === 'junction')
+                .sort((a, b) => a.id.localeCompare(b.id))
+                .forEach(node => {
+                    const div = document.createElement('div');
+                    div.className = 'list-item';
+                    if (blockedNodes.has(node.id)) div.classList.add('blocked');
+                    if (selectedStart === node.id) div.classList.add('selected');
+                    div.textContent = `${node.label} (${node.id})`;
+                    div.onclick = () => selectStartNode(node.id);
+                    startList.appendChild(div);
+                });
+
+            // Hazard nodes list
+            const hazardNodeList = document.getElementById('hazardNodeList');
+            hazardNodeList.innerHTML = '';
+            buildingData.nodes
+                .filter(n => n.type === 'room' || n.type === 'junction')
+                .sort((a, b) => a.id.localeCompare(b.id))
+                .forEach(node => {
+                    const div = document.createElement('div');
+                    div.className = 'list-item';
+                    if (blockedNodes.has(node.id)) div.classList.add('blocked');
+                    
+                    const label = document.createElement('span');
+                    label.textContent = `${node.label} (${node.id})`;
+                    
+                    const btn = document.createElement('button');
+                    btn.className = 'toggle-btn';
+                    btn.textContent = blockedNodes.has(node.id) ? t.unblock : t.block;
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        toggleNodeBlock(node.id);
+                    };
+                    
+                    div.appendChild(label);
+                    div.appendChild(btn);
+                    hazardNodeList.appendChild(div);
+                });
+
+            // Hazard edges list
+            const hazardEdgeList = document.getElementById('hazardEdgeList');
+            hazardEdgeList.innerHTML = '';
+            buildingData.edges
+                .sort((a, b) => a.id.localeCompare(b.id))
+                .forEach(edge => {
+                    const div = document.createElement('div');
+                    div.className = 'list-item';
+                    if (blockedEdges.has(edge.id)) div.classList.add('blocked');
+                    
+                    const label = document.createElement('span');
+                    label.textContent = `${edge.id} (${edge.from}-${edge.to})`;
+                    
+                    const btn = document.createElement('button');
+                    btn.className = 'toggle-btn';
+                    btn.textContent = blockedEdges.has(edge.id) ? t.unblock : t.block;
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        toggleEdgeBlock(edge.id);
+                    };
+                    
+                    div.appendChild(label);
+                    div.appendChild(btn);
+                    hazardEdgeList.appendChild(div);
+                });
+
+            // Hazard exits list
+            const hazardExitList = document.getElementById('hazardExitList');
+            hazardExitList.innerHTML = '';
+            buildingData.nodes
+                .filter(n => n.type === 'exit')
+                .sort((a, b) => a.id.localeCompare(b.id))
+                .forEach(node => {
+                    const div = document.createElement('div');
+                    div.className = 'list-item';
+                    if (closedExits.has(node.id)) div.classList.add('blocked');
+                    
+                    const label = document.createElement('span');
+                    label.textContent = `${node.label} (${node.id})`;
+                    
+                    const btn = document.createElement('button');
+                    btn.className = 'toggle-btn';
+                    btn.textContent = closedExits.has(node.id) ? t.open : t.close;
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        toggleExitClose(node.id);
+                    };
+                    
+                    div.appendChild(label);
+                    div.appendChild(btn);
+                    hazardExitList.appendChild(div);
+                });
+        }
+
+        function selectStartNode(nodeId) {
+            if (blockedNodes.has(nodeId)) return;
+            selectedStart = nodeId;
+            calculateAndDisplayRoute();
+            renderNodeLists();
+            drawMap();
+        }
+
+        function toggleNodeBlock(nodeId) {
+            if (blockedNodes.has(nodeId)) {
+                blockedNodes.delete(nodeId);
+            } else {
+                blockedNodes.add(nodeId);
+            }
+            if (selectedStart) {
+                calculateAndDisplayRoute();
+            }
+            renderNodeLists();
+            drawMap();
+        }
+
+        function toggleEdgeBlock(edgeId) {
+            if (blockedEdges.has(edgeId)) {
+                blockedEdges.delete(edgeId);
+            } else {
+                blockedEdges.add(edgeId);
+            }
+            if (selectedStart) {
+                calculateAndDisplayRoute();
+            }
+            renderNodeLists();
+            drawMap();
+        }
+
+        function toggleExitClose(nodeId) {
+            if (closedExits.has(nodeId)) {
+                closedExits.delete(nodeId);
+            } else {
+                closedExits.add(nodeId);
+            }
+            if (selectedStart) {
+                calculateAndDisplayRoute();
+            }
+            renderNodeLists();
+            drawMap();
+        }
+
+        function resetToInitial() {
+            if (!buildingData) return;
+            blockedNodes = new Set(buildingData.initial_state.blocked_nodes || []);
+            blockedEdges = new Set(buildingData.initial_state.blocked_edges || []);
+            closedExits = new Set(buildingData.initial_state.closed_exits || []);
+            if (selectedStart) {
+                calculateAndDisplayRoute();
+            }
+            renderNodeLists();
+            drawMap();
+        }
+
+        function calculateAndDisplayRoute() {
+            const t = translations[currentLang];
+
+            if (blockedNodes.has(selectedStart)) {
+                currentRoute = null;
+                showStatus(t.startingLocationBlocked, 'warning');
+                drawMap();
+                return;
+            }
+
+            const route = findShortestPath(selectedStart);
+            
+            if (!route) {
+                currentRoute = null;
+                showStatus(t.noRouteAvailable, 'error');
+                drawMap();
+                return;
+            }
+
+            currentRoute = route;
+            const pathStr = route.path.join(' - ');
+            const routeText = `
+                <strong>${t.routeFrom} ${selectedStart} ${t.to} ${route.exit}</strong><br>
+                ${t.path}: ${pathStr}<br>
+                ${t.cost}: ${route.cost}
+            `;
+            showStatus(routeText, 'success');
+            drawMap();
+        }
+
+        function findShortestPath(startId) {
+            // Dijkstra's algorithm
+            const distances = {};
+            const previous = {};
+            const unvisited = new Set();
+
+            buildingData.nodes.forEach(node => {
+                distances[node.id] = Infinity;
+                previous[node.id] = null;
+                if (!blockedNodes.has(node.id) && !(node.type === 'exit' && closedExits.has(node.id))) {
+                    unvisited.add(node.id);
+                }
+            });
+
+            distances[startId] = 0;
+
+            while (unvisited.size > 0) {
+                let current = null;
+                let minDist = Infinity;
+                for (let nodeId of unvisited) {
+                    if (distances[nodeId] < minDist) {
+                        minDist = distances[nodeId];
+                        current = nodeId;
+                    }
+                }
+
+                if (current === null || minDist === Infinity) break;
+
+                unvisited.delete(current);
+
+                // Get neighbors
+                const neighbors = getNeighbors(current);
+                neighbors.forEach(({nodeId, edgeId, cost}) => {
+                    if (!unvisited.has(nodeId)) return;
+
+                    const alt = distances[current] + cost;
+                    if (alt < distances[nodeId]) {
+                        distances[nodeId] = alt;
+                        previous[nodeId] = {nodeId: current, edgeId};
+                    } else if (alt === distances[nodeId]) {
+                        // Tie-breaking: choose lexicographically smallest path
+                        const currentPath = reconstructPath(previous, current);
+                        currentPath.push(nodeId);
+                        const newPath = reconstructPath(previous, nodeId);
+                        
+                        if (comparePathsLexicographically(currentPath, newPath) < 0) {
+                            previous[nodeId] = {nodeId: current, edgeId};
+                        }
+                    }
+                });
+            }
+
+            // Find best exit
+            const exits = buildingData.nodes
+                .filter(n => n.type === 'exit' && !closedExits.has(n.id))
+                .map(n => ({id: n.id, cost: distances[n.id]}))
+                .filter(e => e.cost !== Infinity)
+                .sort((a, b) => {
+                    if (a.cost !== b.cost) return a.cost - b.cost;
+                    return a.id.localeCompare(b.id);
+                });
+
+            if (exits.length === 0) return null;
+
+            const targetExit = exits[0].id;
+            const path = reconstructPath(previous, targetExit);
+            const edges = reconstructEdges(previous, targetExit);
+
+            return {
+                exit: targetExit,
+                cost: exits[0].cost,
+                path: path,
+                edges: edges
+            };
+        }
+
+        function getNeighbors(nodeId) {
+            const neighbors = [];
+            buildingData.edges.forEach(edge => {
+                if (blockedEdges.has(edge.id)) return;
+                
+                if (edge.from === nodeId) {
+                    const toNode = buildingData.nodes.find(n => n.id === edge.to);
+                    if (toNode && !blockedNodes.has(edge.to) && 
+                        !(toNode.type === 'exit' && closedExits.has(edge.to))) {
+                        neighbors.push({nodeId: edge.to, edgeId: edge.id, cost: edge.cost});
+                    }
+                }
+                if (edge.to === nodeId) {
+                    const fromNode = buildingData.nodes.find(n => n.id === edge.from);
+                    if (fromNode && !blockedNodes.has(edge.from) && 
+                        !(fromNode.type === 'exit' && closedExits.has(edge.from))) {
+                        neighbors.push({nodeId: edge.from, edgeId: edge.id, cost: edge.cost});
+                    }
+                }
+            });
+            return neighbors;
+        }
+
+        function reconstructPath(previous, targetId) {
+            const path = [];
+            let current = targetId;
+            while (current !== null) {
+                path.unshift(current);
+                const prev = previous[current];
+                current = prev ? prev.nodeId : null;
+            }
+            return path;
+        }
+
+        function reconstructEdges(previous, targetId) {
+            const edges = [];
+            let current = targetId;
+            while (current !== null) {
+                const prev = previous[current];
+                if (prev && prev.edgeId) {
+                    edges.unshift(prev.edgeId);
+                }
+                current = prev ? prev.nodeId : null;
+            }
+            return edges;
+        }
+
+        function comparePathsLexicographically(path1, path2) {
+            for (let i = 0; i < Math.min(path1.length, path2.length); i++) {
+                const cmp = path1[i].localeCompare(path2[i]);
+                if (cmp !== 0) return cmp;
+            }
+            return path1.length - path2.length;
+        }
+
+        function showStatus(message, type) {
+            const statusBox = document.getElementById('statusBox');
+            const routeInfo = document.getElementById('routeInfo');
+            statusBox.style.display = 'block';
+            statusBox.className = 'status-box ' + (type === 'error' ? 'error' : (type === 'warning' ? 'warning' : ''));
+            routeInfo.innerHTML = message;
+        }
+
+        function handleCanvasClick(event) {
+            if (!buildingData) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            // Find clicked node
+            for (let node of buildingData.nodes) {
+                const pos = transformCoords(node.x, node.y);
+                const dist = Math.sqrt((x - pos.x) ** 2 + (y - pos.y) ** 2);
+                if (dist <= 25) {
+                    if (node.type === 'room' || node.type === 'junction') {
+                        selectStartNode(node.id);
+                    }
+                    return;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
