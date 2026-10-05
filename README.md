@@ -2,7 +2,7 @@
 
 **AI DevFest Mock Test Solution**
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge&logo=github)](https://YOUR-USERNAME.github.io/devfest-REGISTRATION-NUMBER/)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen?style=for-the-badge&logo=github)](https://jamilsarker.github.io/vibe_coding_mock/)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 [![Made with](https://img.shields.io/badge/Made%20with-JavaScript-yellow?style=for-the-badge&logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
@@ -10,9 +10,9 @@
 
 ## 🚀 Live Demo
 
-### 🌐 **[Click Here to Open Live Demo](https://YOUR-USERNAME.github.io/devfest-REGISTRATION-NUMBER/)**
+### 🌐 **[Click Here to Open Live Demo](https://jamilsarker.github.io/vibe_coding_mock/)**
 
-> **📝 Note:** After deploying to GitHub Pages/Vercel/Netlify, replace the URL above with your actual live link.
+> **✅ Live Site:** The application is deployed and ready to use!
 
 ### 💻 Local Testing:
 If you want to run locally, simply open `index.html` in your browser (Chrome recommended).
@@ -28,14 +28,13 @@ If you want to run locally, simply open `index.html` in your browser (Chrome rec
 
 ## 👤 Developer Information
 
-- **Name**: [Your Full Name Here]
+- **Name**: Jamil Sarker
 - **Registration Number**: [Your Registration Number]
-- **GitHub Repository**: [https://github.com/YOUR-USERNAME/devfest-REGISTRATION-NUMBER](https://github.com/YOUR-USERNAME/devfest-REGISTRATION-NUMBER)
-- **Live Website**: [https://YOUR-USERNAME.github.io/devfest-REGISTRATION-NUMBER/](https://YOUR-USERNAME.github.io/devfest-REGISTRATION-NUMBER/)
-- **Final Commit ID**: [Will be added after final commit]
+- **GitHub Repository**: https://github.com/jamilsarker/vibe_coding_mock
+- **Live Website**: https://jamilsarker.github.io/vibe_coding_mock/
+- **Final Commit ID**: [Run `git rev-parse --short HEAD` before final submission]
 
-> **Instructions:** Replace the placeholders above with your actual information before submission.
-
+> **✏️ Note:** Update your registration number and final commit ID before submission.
 ---
 
 ## 📖 Project Description
